@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<!--
+	  * I Michael Laking, student number 000775971, certify that this material is
+	  * my original work. No other person's work has been used without due acknowledgement
+	  * and I have not made my work available to anyone else.
+-->
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>PartB</title>
+
+        <link href="css/bootstrap.min.css" rel="stylesheet">
+        <link rel="shortcut icon" href="images/favicon.ico" /> 
+
+        <style>
+            .smaller {
+                font-size: 70%;
+            }
+            .margin-increase {
+                padding-left: 3px;
+            }
+            .margin-decrease {
+                margin-bottom: 0px;
+            }
+            .img-small {
+                width: 40px;
+            }
+            .loader {
+                border: 16px solid #f3f3f3; /* Light grey */
+                border-top: 16px solid #3498db; /* Blue */
+                border-radius: 50%;
+                width: 120px;
+                height: 120px;
+                animation: spin 2s linear infinite;
+                margin: auto;
+            }
+
+            @keyframes spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+            }        
+        </style>
+
+    </head>
+    <body>
+        <h2 class="text-center"><strong>Random Restaurant</strong></h2>
+
+        <h4 id="headerContainer" class="text-center"><strong>Finding Location...</strong></h4>
+        <div id="loader" class="loader"></div> 
+        <ul id="mediaListContainer" class="list-unstyled"></ul>
+
+
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+        <script src="js/bootstrap.min.js"></script>
+        <script type='text/javascript' src='https://www.bing.com/api/maps/mapcontrol?key=An99UCFjPjmQt4O52JSNM3OtiR3S2CgSydI1dPD-ru26Jw-S972tO-4znmEBX5gW'></script>    
+        <script>
+            var myurl = "https://csunix.mohawkcollege.ca/tooltime/10133/2019/api/api.php";
+            var userLocation;
+            $(document).ready(function () {
+
+                /**
+                 * When the window is loaded, this method will prompt the user for access
+                 * to their location. If access is granted the user location's latitude
+                 * and longitude is saved to be used later. Additionally, the header
+                 * container html is updated and the getRestaurants method is called.
+                 * @param {type} data
+                 * @returns {undefined}
+                 */
+                window.onload = function () {
+                    function success(position) {
+                        $("#headerContainer").html("<strong>Finding restaurants near you...</strong>");
+                        userLocation = new Microsoft.Maps.Location(
+                                position.coords.latitude,
+                                position.coords.longitude);
+
+                        getRestaurants();
+                    }
+                    navigator.geolocation.getCurrentPosition(success);
+                };
+
+
+                /**
+                 * When getRestaurants method is called, a GET call to Yelp is made with the user's current latitude and longitude
+                 * This data is parsed and saved into an array called restaurantArray. jQuery is utilized to then loop through
+                 * the first 20 objects in the array and dynamically creates a list of media objects with each restaurants
+                 * information. Further, the loading screen div is then removed, and the headerContainer div is updated
+                 * and finally the mediaObject is added to the html in the mediaListContainer.
+                 * @returns {undefined}
+                 */ 
+                function getRestaurants() {
+                    $.get(
+                            "https://csunix.mohawkcollege.ca/tooltime/10133/2019/api/api.php?lat=" + userLocation.latitude + "&long=" + userLocation.longitude,
+                            function (data) {
+                                var restaurantArray = $.parseJSON(data);
+                                var mediaObject = "";
+                                for (var i = 0; i < 20; i++) {
+                                    mediaObject += '<li class="media">';
+                                    mediaObject += '<div class="media">';
+                                    mediaObject += '<div class="media-left">';
+                                    mediaObject += '<a href="#">';
+                                    mediaObject += '<img class="pull-left" style="height: 66px; width: 66px" src="' + restaurantArray.businesses[i].image_url + '"\n\
+                                                            alt="..."></a></div>';
+                                    mediaObject += '<div class="media-body margin-increase"> <h6 class="media-heading margin-decrease"><strong>' + restaurantArray.businesses[i].name + '</strong></h6>';
+                                    mediaObject += '<p class="smaller margin-decrease">' + restaurantArray.businesses[i].categories[0].title + "<br>";
+                                    mediaObject += restaurantArray.businesses[i].location.address1 + ', ' +
+                                            restaurantArray.businesses[i].location.city + ', ' + restaurantArray.businesses[i].location.state + " " +
+                                            restaurantArray.businesses[i].location.zip_code + ', ' + restaurantArray.businesses[i].location.display_address[2] + '<br>' +
+                                            restaurantArray.businesses[i].display_phone + '<br>' +
+                                            '<img class="img-small" src="images/small_' + restaurantArray.businesses[i].rating + '.png"> ' +
+                                            restaurantArray.businesses[i].review_count + '</p>';
+                                    mediaObject += '</div></li>';
+                                }
+                                $("#loader").remove();
+                                $("#headerContainer").html("<strong>Found these restaurants...</strong>");
+                                $('#mediaListContainer').html(mediaObject);
+                            }
+                    );
+                }
+
+            }); // end of script    
+        </script>
+    </body>
+</html>
